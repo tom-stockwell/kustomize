@@ -56,7 +56,7 @@ See https://sigs.k8s.io/kustomize
 		version.NewCmdVersion(stdOut),
 		openapi.NewCmdOpenAPI(stdOut),
 		localize.NewCmdLocalize(fSys),
-		tree.NewCmdTree(stdOut),
+		tree.NewCmdTree(fSys, stdOut),
 	)
 	configcobra.AddCommands(c, konfig.ProgramName)
 
