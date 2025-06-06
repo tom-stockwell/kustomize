@@ -33,11 +33,10 @@ func MakeKustomizerParser(o *Options) *KustomizeParser {
 }
 
 func (kp *KustomizeParser) GetKustomization(fSys filesys.FileSystem, path string) (*types.Kustomization, error) {
-	println("In kustomizer:GetKustomization")
-
 	resmapFactory := resmap.NewFactory(kp.depProvider.GetResourceFactory())
 
 	ldr, err := fLdr.NewLoader(kp.loadRestrictor, path, fSys)
+
 	if err != nil {
 		return nil, err
 	}

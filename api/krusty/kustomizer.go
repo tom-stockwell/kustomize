@@ -126,30 +126,6 @@ func (b *Kustomizer) Run(
 	return m, nil
 }
 
-func (b *Kustomizer) GetKustomizationTarget(fSys filesys.FileSystem, path string) (*target.KustTarget, error) {
-	println("In kustomizer:GetKustomization")
-
-	resmapFactory := resmap.NewFactory(b.depProvider.GetResourceFactory())
-	lr := fLdr.RestrictionNone
-	if b.options.LoadRestrictions == types.LoadRestrictionsRootOnly {
-		lr = fLdr.RestrictionRootOnly
-	}
-	ldr, err := fLdr.NewLoader(lr, path, fSys)
-	if err != nil {
-		return nil, err
-	}
-	defer ldr.Cleanup()
-	kt := target.NewKustTarget(
-		ldr,
-		b.depProvider.GetFieldValidator(),
-		resmapFactory,
-		// The plugin configs are always located on disk, regardless of the fSys passed in
-		pLdr.NewLoader(b.options.PluginConfig, resmapFactory, filesys.MakeFsOnDisk()),
-	)
-	err = kt.Load()
-	return kt, nil
-}
-
 func (b *Kustomizer) applySortOrder(m resmap.ResMap, kt *target.KustTarget) error {
 	// Sort order can be defined in two places:
 	// - (new) kustomization file

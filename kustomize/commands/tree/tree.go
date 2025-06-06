@@ -3,12 +3,14 @@ package tree
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/api/konfig"
 	"sigs.k8s.io/kustomize/api/krusty"
 	"sigs.k8s.io/kustomize/kyaml/filesys"
+	"sigs.k8s.io/kustomize/pkg/git"
 )
 
 var theArgs struct {
@@ -31,11 +33,6 @@ func NewCmdTree(fSys filesys.FileSystem, w io.Writer) *cobra.Command {
 }
 
 func RunTree(fSys filesys.FileSystem, w io.Writer, path string) error {
-	_, err := fmt.Fprintln(w, "test output")
-	if err != nil {
-		return err
-	}
-
 	kp := krusty.MakeKustomizerParser(krusty.MakeDefaultOptions())
 
 	root := NewKustomizeNode(path, nil)
@@ -54,29 +51,61 @@ func RunTree(fSys filesys.FileSystem, w io.Writer, path string) error {
 	return nil
 }
 
+func IsRemoteFile(path string) bool {
+	u, err := url.Parse(path)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https")
+}
+
 func parseDir(fSys filesys.FileSystem, kp *krusty.KustomizeParser, node *KustomizeNode) error {
 	k, err := kp.GetKustomization(fSys, node.Path)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("running for:", node.Path)
-
+	// handle resources
 	for _, r := range k.Resources {
-		rPath := filepath.Join(node.Path, r)
-		newNode := node.AddChild(rPath)
-		if fSys.IsDir(rPath) {
-			err = parseDir(fSys, kp, newNode)
-			if err != nil {
-				fmt.Println("Error reading", rPath)
-			}
+		_, err := git.NewRepoSpecFromUrl(r)
+		if err == nil {
+			handleGitRepo(node, r)
+		} else if IsRemoteFile(r) {
+			handleRemoteFile(node, r)
 		} else {
-			fmt.Println(rPath, "is not dir")
+			_, err := handleLocal(node, r, fSys, kp)
+			if err != nil {
+				return err
+			}
 		}
-		fmt.Println(node)
+	}
+
+	// handle openapi ref
+	if openApiPath, exists := k.OpenAPI["path"]; exists {
+		node.AddChild(openApiPath)
 	}
 
 	return nil
+}
+
+func handleRemoteFile(node *KustomizeNode, path string) *KustomizeNode {
+	return node.AddChild(path)
+}
+
+func handleGitRepo(node *KustomizeNode, path string) *KustomizeNode {
+	return handleRemoteFile(node, path)
+}
+
+func handleLocal(node *KustomizeNode, path string, fSys filesys.FileSystem, kp *krusty.KustomizeParser) (*KustomizeNode, error) {
+	newPath := path
+	if !filepath.IsAbs(path) {
+		newPath = filepath.Join(node.Path, path)
+	}
+	newNode := node.AddChild(newPath)
+	if fSys.IsDir(newPath) {
+		fmt.Println("doing subdir?", newPath)
+		err := parseDir(fSys, kp, newNode)
+		return newNode, err
+	}
+
+	return newNode, nil
 }
 
 // func parseFiles(string kustPath, []string paths) error {
