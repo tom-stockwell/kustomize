@@ -38,23 +38,23 @@ func RunTree(fSys filesys.FileSystem, w io.Writer, path string) error {
 
 	kp := krusty.MakeKustomizerParser(krusty.MakeDefaultOptions())
 
-	root := NewPathNode(path, nil)
-
+	root := NewKustomizeNode(path, nil)
 	parseDir(fSys, kp, root)
 
-	fmt.Println("Walking tree")
-	root.Walk(func(node *PathNode) bool {
-		fmt.Println(node.Path, len(node.Children))
-		return true
-	})
-	fmt.Println(root)
-	fmt.Println("TREE")
-	root.Print(w)
+	tree := MakeKustomizeTree(root)
+
+	fmt.Println("\nPrinting simple tree:\n")
+	printer := MakeSimpleTreePrinter(w)
+	printer.PrintTree(tree)
+
+	fmt.Println("\nPrinting pretty tree:\n")
+	printer = MakePrettyTreePrinter(w)
+	printer.PrintTree(tree)
 
 	return nil
 }
 
-func parseDir(fSys filesys.FileSystem, kp *krusty.KustomizeParser, node *PathNode) error {
+func parseDir(fSys filesys.FileSystem, kp *krusty.KustomizeParser, node *KustomizeNode) error {
 	k, err := kp.GetKustomization(fSys, node.Path)
 	if err != nil {
 		return err
