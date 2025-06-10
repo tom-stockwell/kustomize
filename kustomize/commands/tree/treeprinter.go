@@ -21,7 +21,7 @@ func (p SimpleTreePrinter) PrintTree(tree KustomizeTree) {
 	tree.Walk(p.print)
 }
 
-func (p SimpleTreePrinter) print(node *KustomizeNode, depth int, isLast bool) bool {
+func (p SimpleTreePrinter) print(node *KustomizeTreeNode, depth int, isLast bool) bool {
 	_, _ = fmt.Fprintln(p.w, node.Path)
 	return true
 }
@@ -55,7 +55,7 @@ func (p PrettyTreePrinter) PrintTree(tree KustomizeTree) {
 	p.print(tree.Root, 0, "")
 }
 
-func (p PrettyTreePrinter) print(n *KustomizeNode, depth int, prefix string) {
+func (p PrettyTreePrinter) print(n *KustomizeTreeNode, depth int, prefix string) {
 	if depth == 0 {
 		_, _ = fmt.Fprintln(p.w, n.Path)
 	}
