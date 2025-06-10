@@ -52,7 +52,7 @@ func MakePrettyTreePrinter(w io.Writer) TreePrinter {
 }
 
 func (p PrettyTreePrinter) PrintTree(tree KustomizeTree) {
-	p.print(tree.root, 0, "")
+	p.print(tree.Root, 0, "")
 }
 
 func (p PrettyTreePrinter) print(n *KustomizeNode, depth int, prefix string) {
