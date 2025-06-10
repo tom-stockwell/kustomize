@@ -3,6 +3,7 @@ package tree
 import (
 	"net/url"
 	"path/filepath"
+	"strings"
 
 	"sigs.k8s.io/kustomize/api/krusty"
 	"sigs.k8s.io/kustomize/kyaml/filesys"
@@ -153,6 +154,42 @@ func (f *kustomizeTreeFactory) parseKustomizationDir(path string) (*KustomizeNod
 	}
 	for _, p := range k.PatchesJson6902 {
 		node.AddNewChild(p.Path)
+	}
+
+	// handle configmap & secret generators
+	for _, g := range k.SecretGenerator {
+		if len(g.EnvSource) > 0 {
+			node.AddNewChild(g.EnvSource)
+		}
+		for _, s := range g.EnvSources {
+			node.AddNewChild(s)
+		}
+		for _, fs := range g.FileSources {
+			kv := strings.SplitN(fs, "=", 2)
+			if len(kv) == 2 {
+				node.AddNewChild(kv[1])
+			} else {
+				node.AddNewChild(kv[0])
+			}
+		}
+		node.AddNewChild(g.EnvSource)
+	}
+
+	for _, g := range k.ConfigMapGenerator {
+		if len(g.EnvSource) > 0 {
+			node.AddNewChild(g.EnvSource)
+		}
+		for _, s := range g.EnvSources {
+			node.AddNewChild(s)
+		}
+		for _, fs := range g.FileSources {
+			kv := strings.SplitN(fs, "=", 2)
+			if len(kv) == 2 {
+				node.AddNewChild(kv[1])
+			} else {
+				node.AddNewChild(kv[0])
+			}
+		}
 	}
 
 	return node, nil
