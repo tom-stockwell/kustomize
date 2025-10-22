@@ -3,9 +3,11 @@ package tree
 import (
 	"fmt"
 	"io"
+	"path"
 
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/api/konfig"
+	"sigs.k8s.io/kustomize/api/krusty"
 	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
 
@@ -28,21 +30,41 @@ func NewCmdTree(fSys filesys.FileSystem, w io.Writer) *cobra.Command {
 	return &versionCmd
 }
 
-func RunTree(fSys filesys.FileSystem, w io.Writer, path string) error {
+func getKustFile(fSys filesys.FileSystem, root string) (string, error) {
+	match := 0
+	var kustFileName string
+	for _, kf := range konfig.RecognizedKustomizationFileNames() {
+		fp := path.Join(root, kf)
+		if fSys.Exists(fp) && !fSys.IsDir(fp) {
+			match += 1
+			kustFileName = kf
+		}
+	}
+	switch match {
+	case 0:
+		return "", fmt.Errorf("No kustomization found under: %s\n", root)
+	case 1:
+		return kustFileName, nil
+	default:
+		return "", fmt.Errorf("Found multiple kustomization files under: %s\n", root)
+	}
+}
 
-	ktree, err := NewKustomizeTree(path, fSys)
+func RunTree(fSys filesys.FileSystem, w io.Writer, path string) error {
+	thepath := "examples/springboot/overlays/production"
+	kp := krusty.MakeKustomizerParser(krusty.MakeDefaultOptions())
+	tree, err := kp.BuildKustTreeFromRoot(thepath)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("\nPrinting simple tree:")
-	printer := MakeSimpleTreePrinter(w)
-	printer.PrintTree(*ktree)
+	// options:
+	//   - full paths - (relative to cwd), otherwise relative to the parent
+	//   - show / hide / recurse remote files
+	//   - flat vs tree view
+	//    - kustomize cfg files --tree --full-paths --relative-paths --absolute-paths --show-remote --parse-remote
 
-	fmt.Println("\nPrinting pretty tree:")
-	printer = MakePrettyTreePrinter(w)
-	printer.PrintTree(*ktree)
-
+	fmt.Println((*tree).String())
 	return nil
 }
 

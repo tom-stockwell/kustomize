@@ -5,3 +5,23 @@ patches:
 - path: healthcheck_patch.yaml
 - path: memorylimit_patch.yaml
 namePrefix: production-
+components:
+  - ../../../multibases/production
+openapi:
+  path: test-openapi-file.yml
+bases:
+  - ../../../helloWorld
+configMapGenerator:
+  - files:
+      - test=filename-configmap.yml
+      - filename-configmap.yml-2
+  - envs:
+      - ../test.env
+secretGenerator:
+  - files:
+      - test=filename-secret.yml
+      - filename-secret.yml-2
+  - envs:
+      - ../test.envesecret
+generators:
+  - test-generator.file

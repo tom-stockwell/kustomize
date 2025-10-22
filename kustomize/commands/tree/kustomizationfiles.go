@@ -101,24 +101,6 @@ func (kfr *KustomizationFiles) extractPatchFiles(k types.Kustomization) []string
 func (kfr *KustomizationFiles) configMapGeneratorFiles(k types.Kustomization) []string {
 	files := make([]string, 0, len(k.ConfigMapGenerator))
 
-	// ConfigMap generator files
-	for _, cm := range k.ConfigMapGenerator {
-		if cm.EnvSource != "" {
-			files = append(files, cm.EnvSource)
-		}
-
-		files = append(files, cm.EnvSources...)
-
-		for _, fileSource := range cm.FileSources {
-			// parse "key=file" or just "file"
-			parts := strings.SplitN(fileSource, "=", 2)
-			if len(parts) == 2 {
-				files = append(files, parts[1])
-			} else {
-				files = append(files, parts[0])
-			}
-		}
-	}
 	return files
 }
 
