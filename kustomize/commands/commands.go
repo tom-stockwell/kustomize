@@ -18,8 +18,8 @@ import (
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/create"
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/edit"
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/localize"
+	"sigs.k8s.io/kustomize/kustomize/v5/commands/ls"
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/openapi"
-	"sigs.k8s.io/kustomize/kustomize/v5/commands/tree"
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/version"
 	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
@@ -56,7 +56,7 @@ See https://sigs.k8s.io/kustomize
 		version.NewCmdVersion(stdOut),
 		openapi.NewCmdOpenAPI(stdOut),
 		localize.NewCmdLocalize(fSys),
-		tree.NewCmdTree(fSys, stdOut),
+		ls.NewLsCommand(fSys),
 	)
 	configcobra.AddCommands(c, konfig.ProgramName)
 
