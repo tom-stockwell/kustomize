@@ -18,6 +18,7 @@ import (
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/create"
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/edit"
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/localize"
+	"sigs.k8s.io/kustomize/kustomize/v5/commands/ls"
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/openapi"
 	"sigs.k8s.io/kustomize/kustomize/v5/commands/version"
 	"sigs.k8s.io/kustomize/kyaml/filesys"
@@ -52,6 +53,7 @@ See https://sigs.k8s.io/kustomize
 		edit.NewCmdEdit(
 			fSys, pvd.GetFieldValidator(), pvd.GetResourceFactory(), stdOut),
 		create.NewCmdCreate(fSys, pvd.GetResourceFactory()),
+		ls.NewCmdLs(fSys, stdOut),
 		version.NewCmdVersion(stdOut),
 		openapi.NewCmdOpenAPI(stdOut),
 		localize.NewCmdLocalize(fSys),
